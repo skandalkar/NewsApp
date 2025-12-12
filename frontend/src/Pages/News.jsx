@@ -1,0 +1,72 @@
+import axios from "axios";
+import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import NewsContainer from "../components/NewsContainer";
+
+function News() {
+
+  const backEndUrl = import.meta.env.VITE_BACKEND_URL;
+
+  const { category } = useParams();
+
+  const [articles, setArticles] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+
+  const fetchNews = async () => {
+    try {
+      setLoading(true);
+      // Fetch news articles from the backend API based on the category
+      const response = await axios.get('https://5d070ce6c8ba.ngrok-free.app/api/news', {
+        params: { category },
+        headers: { "ngrok-skip-browser-warning": "true" }
+      });
+      setArticles(Array.isArray(response.data.articles) ? response.data.articles : []);
+      setLoading(false);
+
+      console.log(`${backEndUrl}/api/news`)
+    }
+    catch (error) {
+      console.error("Error fetching news:", error);
+      setArticles([]);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNews();
+  }, [category, backEndUrl]);
+
+
+  return (
+    <div>
+      <Navbar />
+
+      <div className="h-screen text-black py-24 px-4 md:px-0">
+        {
+          loading ? (
+            <div className="h-full flex items-center justify-center w-full">
+              <div className='flex flex-col items-center justify-center'>
+                <Loader2 className='h-12 w-12 animate-spin' />
+                <h1 className='text-gray-800 text-xl font-semibold'>Loading...</h1>
+              </div>
+            </div>
+          ) : (
+
+            <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2  lg:grid-cols-4 gap-7">
+              {articles.map((article, index) => (
+                <NewsContainer key={index} article={article} />
+              ))}
+            </div>
+          )
+        }
+
+      </div>
+    </div>
+
+  );
+}
+
+export default News;
